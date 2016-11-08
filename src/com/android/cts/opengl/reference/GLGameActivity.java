@@ -31,12 +31,15 @@ import android.view.View;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
+import android.util.Log;
 
 public class GLGameActivity extends Activity {
 
     public final static String SET_UP_TIME = "set_up_time";
     public final static String UPDATE_TIMES = "update_times";
     public final static String RENDER_TIMES = "render_times";
+    public final static String INTENT_EXTRA_TIMEOUT = "timeout";
+    public final static String INTENT_EXTRA_NUM_FRAMES = "num_frames";
 
     private int mNumFrames;
     private int mTimeout;
@@ -52,28 +55,28 @@ public class GLGameActivity extends Activity {
         System.loadLibrary("ctsopengl_jni");
 
         Intent intent = getIntent();
-        //mNumFrames = intent.getIntExtra(GLActivityIntentKeys.INTENT_EXTRA_NUM_FRAMES, 1000);
-        //mTimeout = intent.getIntExtra(GLActivityIntentKeys.INTENT_EXTRA_TIMEOUT, 1000000);
+        mNumFrames = intent.getIntExtra(INTENT_EXTRA_NUM_FRAMES, 1000);
+        mTimeout = intent.getIntExtra(INTENT_EXTRA_TIMEOUT, 1000000);
 
-        //SurfaceView surfaceView = new SurfaceView(this);
-        //surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
-        //    @Override
-        //    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        //        mSurface = holder.getSurface();
-        //        mStartSignal.countDown();
-        //    }
+        SurfaceView surfaceView = new SurfaceView(this);
+        surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                mSurface = holder.getSurface();
+                mStartSignal.countDown();
+            }
 
-        //    @Override
-        //    public void surfaceCreated(SurfaceHolder holder) {}
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {}
 
-        //    @Override
-        //    public void surfaceDestroyed(SurfaceHolder holder) {}
-        //});
-        //setContentView(surfaceView);
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {}
+        });
+        setContentView(surfaceView);
 
-        View view = getLayoutInflater().inflate(R.layout.hello_activity, null);
-        setContentView(view);
-        /*
+        AssetManager assetManager = getAssets();
+        int id = loadTexture(assetManager, "texture/fish_dark.png");
+
         // Spawns a worker.
         Worker worker = new Worker(new Handler() {
             public void handleMessage(Message msg) {
@@ -86,7 +89,10 @@ public class GLGameActivity extends Activity {
             }
         });
         worker.start();
-        */
+
+        //View view = getLayoutInflater().inflate(R.layout.hello_activity, null);
+        //setContentView(view);
+        //
     }
 
     private static native boolean startBenchmark(AssetManager manager,
@@ -99,10 +105,9 @@ public class GLGameActivity extends Activity {
     /**
      * This thread renderers the benchmarks, freeing the UI thread.
      */
-    /*
-    private class Worker extends Thread implements WatchDog.TimeoutCallback {
+    private class Worker extends Thread  {
 
-        private WatchDog watchDog;
+        //private WatchDog watchDog;
         private Handler mHandler;
 
         public Worker(Handler handler) {
@@ -118,8 +123,8 @@ public class GLGameActivity extends Activity {
                 return;
             }
             // Creates a watchdog to ensure a iteration doesn't exceed the timeout.
-            watchDog = new WatchDog(mTimeout, this);
-            watchDog.start();
+            //watchDog = new WatchDog(mTimeout, this);
+            //watchDog.start();
 
             // Used to record the time taken to setup (GL, context, textures, meshes).
             mSetUpTimes = new double[4];
@@ -134,18 +139,19 @@ public class GLGameActivity extends Activity {
                     mUpdateTimes,
                     mRenderTimes);
 
-            watchDog.stop();
+            //watchDog.stop();
             mHandler.sendEmptyMessage((success) ? 1 : 0);
         }
 
-        public void onTimeout() {
-            mHandler.sendEmptyMessage(0);
-        }
+        //public void onTimeout() {
+        //    mHandler.sendEmptyMessage(0);
+        //}
 
     }
-    */
 
     public static int loadTexture(AssetManager manager, String path) {
+        Log.i("[prife]", "loadTexture:" + path);
+
         InputStream in = null;
         try {
             in = manager.open(path);
@@ -153,6 +159,7 @@ public class GLGameActivity extends Activity {
             e.printStackTrace();
             return -1;
         }
+
         BitmapFactory.Options op = new BitmapFactory.Options();
         op.inPreferredConfig = Bitmap.Config.ARGB_8888;
         Bitmap bmp = BitmapFactory.decodeStream(in, null, op);
