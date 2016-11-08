@@ -8,6 +8,8 @@ LOCAL_SRC_FILES := $(call all-java-files-under, src)
 
 LOCAL_PACKAGE_NAME := HelloActivity
 
+LOCAL_JNI_SHARED_LIBRARIES := libctsopengl_jni
+
 LOCAL_SDK_VERSION := current
 
 include $(BUILD_PACKAGE)
